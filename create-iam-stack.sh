@@ -7,7 +7,7 @@ fi
 
 aws cloudformation create-stack \
 --stack-name $1 \
---template-body file://sls-iam.yml \
+--template-body file://sls-iam.json \
 --parameters ParameterKey=StageName,ParameterValue=$2 \
 ParameterKey=Service,ParameterValue=$3 \
 ParameterKey=Function,ParameterValue=$4 \
