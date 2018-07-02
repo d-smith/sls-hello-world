@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Create a IAM policy for a lambda function
+Parameters:
+  StageName:
+    Type: String
+    Description: Stage name for deploy, stage as in API gateway and sls application.
+    Default: dev
+  Service:
+    Type: String
+    Description: Service name from the serverless.yml to use this with
+  Function:
+    Type: String
+    Description: Function the role is associated with
+
+Resources:
+  FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join [ '-', [!Ref "Service", !Ref "AWS::Region", "lambdaRole"]]
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal: 
+            Service: [lambda.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+
+  FunctionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Sid: createstream
+            Effect: Allow
+            Action:
+              logs:CreateLogStream
+            Resource: !Join ["", ["arn:aws:logs:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId", ":log-group:/aws/lambda/", !Ref "Service", "-", !Ref "StageName", "-", !Ref "Function", ":*" ]]
+          -
+            Sid: putlogs
+            Effect: Allow
+            Action:
+              logs:PutLogEvents
+            Resource: !Join ["", ["arn:aws:logs:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId", ":log-group:/aws/lambda/", !Ref "Service", "-", !Ref "StageName", "-", !Ref "Function", ":*:*" ]]
+
+
+      Roles: [!Ref FunctionRole]
+
+
+Outputs:
+
+  LambdaRoleArn:
+    Value: !GetAtt FunctionRole.Arn
