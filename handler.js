@@ -1,6 +1,46 @@
-'use strict';
+const AWS = require('aws-sdk');
 
-module.exports.hello = (event, context, callback) => {
+const putServiceDuration = async (serviceName, timeMillis) => {
+
+  let params = {
+    MetricData: [
+      {
+        MetricName: serviceName + 'Duration',
+        Dimensions: [
+          {
+            Name: 'Stage',
+            Value: process.env.STAGE
+          }
+        ],
+        Unit: 'Milliseconds',
+        Value: timeMillis
+      }],
+
+    Namespace: 'HelloSls'
+  };
+
+
+
+  const cloudwatch = new AWS.CloudWatch();
+
+
+  cloudwatch.putMetricData(params, (err, data) => {
+    console.log('putServiceDuration');
+    if (err) console.log(err, err.stack);
+    else console.log(data);
+  });
+
+};
+
+const fnThatReturnsAPromise = () => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, 1000);
+  });
+}
+
+module.exports.hello = async (event, context, callback) => {
   const response = {
     statusCode: 200,
     body: JSON.stringify({
@@ -8,6 +48,12 @@ module.exports.hello = (event, context, callback) => {
       input: event,
     }),
   };
+
+  let start = new Date().getTime();
+  await fnThatReturnsAPromise();
+  let stop = new Date().getTime();
+  putServiceDuration('hello', stop - start);
+
 
   callback(null, response);
 

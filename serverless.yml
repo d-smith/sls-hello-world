@@ -1,5 +1,6 @@
 service: sls-hello-world
 
+
 provider:
   name: aws
   stage: ${opt:stage, 'dev'}
@@ -10,3 +11,5 @@ functions:
     handler: handler.hello
     role:
       ${env:LAMBDA_ROLE_ARN}
+    environment:
+      STAGE: '${self:provider.stage}'
