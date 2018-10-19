@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Template to create a monitoring dashboard for my lambda
+Parameters:
+  Stage:
+    Type: String
+  Service:
+    Type: String
+Resources:
+  MyDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Join [ '-', [ 'Hello', !Ref 'Stage' ]]
+      DashboardBody:
+        !Sub
+          - |-
+            {
+              "widgets":[
+                {
+                  "type":"metric",
+                  "properties": {
+                    "metrics":[[
+                      "AWS/Lambda",
+                      "Invocations",
+                      "FunctionName",
+                      "${service}-${stage}-hello"
+                    ]],
+                    "title":"Invocations",
+                    "region":"${region}",
+                    "stat":"Sum"
+                  }
+                }
+              ]
+            }
+          - { service: !Ref "Service", stage: !Ref "Stage", region: !Ref "AWS::Region" }
